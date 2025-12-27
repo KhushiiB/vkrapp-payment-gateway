@@ -4,11 +4,14 @@ import { PaymentService } from "../services/PaymentService";
 export class PaymentController {
   private service: PaymentService;
 
-  constructor() {
+
+  ensurePaymentServiceInitiated = () => {
+    if(this.service) return;
     this.service = new PaymentService();
   }
 
   createIntent = async (req: Request, res: Response) => {
+    this.ensurePaymentServiceInitiated()
     const result = await this.service.createPaymentIntent(
       {
         user_id: res.get("user_id"),

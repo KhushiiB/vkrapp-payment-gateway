@@ -8,6 +8,23 @@ const API = {
         message
         errors
         data
+        calculatedPrices
+      }
+    }
+  `,
+  getBooking: gql`
+    query Query($ferryBookingDraftId: Int!) {
+      ferryBookingDraft(id: $ferryBookingDraftId) {
+        priceInfo
+      }
+    }
+  `,
+  updatePriceInfo: gql`
+    mutation updateFerryBookingDraft($input: UpdateFerryBookingDraftInput!) {
+      updateFerryBookingDraft(input: $input) {
+        ferryBookingDraft {
+          id
+        }
       }
     }
   `,

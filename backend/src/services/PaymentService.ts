@@ -6,16 +6,16 @@ import {
   CreateIntentResponse,
 } from "../types/payment.types";
 import { GraphQLClient } from "./GraphQL/GraphQLClient";
+import { BookingPriceInfo } from "./GraphQL/GraphQLTypes";
 
 export class PaymentService {
   private stripe: Stripe;
   private graphQLClient: GraphQLClient;
 
   constructor() {
-    this.stripe = new Stripe(
-      process.env.STRIPE_SECRET_KEY,
-      { apiVersion: "2023-10-16" }
-    );
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2023-10-16",
+    });
     this.graphQLClient = new GraphQLClient();
   }
 
@@ -28,13 +28,39 @@ export class PaymentService {
     /**
      * Verify the booking
      */
-    const result = await this.graphQLClient.verifyBooking(draftId, token);
+    let result = await this.graphQLClient.verifyBooking(draftId, token);
+
     if (!result.data?.verifyScheduleBooking.success) {
-      return {
-        statusCode: 400,
-        status: false,
-        error: result.data?.verifyScheduleBooking.message,
-      };
+      try {
+        const booking = await this.graphQLClient.getBooking(draftId, token);
+
+        let priceInfo: BookingPriceInfo = {
+          ...booking.data.ferryBookingDraft.priceInfo,
+          SailingFare:
+            result.data.verifyScheduleBooking.calculatedPrices.sailingPrice?.toFixed(
+              2
+            ),
+          TotalPrice:
+            result.data.verifyScheduleBooking.calculatedPrices.totalPrice?.toFixed(
+              2
+            ),
+        };
+        const updateResult = await this.graphQLClient.updateBookingPriceInfo(
+          draftId,
+          token,
+          priceInfo
+        );
+        result = await this.graphQLClient.verifyBooking(draftId, token);
+        if (!result.data?.verifyScheduleBooking.success) {
+          throw(new Error())
+        }
+      } catch (e) {
+        return {
+          statusCode: 400,
+          status: false,
+          error: result.data?.verifyScheduleBooking.message,
+        };
+      }
     }
 
     const bookingInfo = JSON.parse(

@@ -1,7 +1,12 @@
 import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 import API from "./GraphQLEndpoints";
 import {
+  BookingPriceInfo,
   GatewayCode,
+  GetBookingResponse,
+  GetBookingVariables,
+  UpdateBookingPriceInfoResponse,
+  UpdateBookingPriceInfoVariables,
   UpdatePaymentInfoResponse,
   UpdatePaymentInfoVariables,
   VerifyBookingResponse,
@@ -35,6 +40,46 @@ export class GraphQLClient {
         },
       }
     );
+  }
+
+  getBooking(draftId: number, token: string) {
+    return this.gqlClient.query<GetBookingResponse, GetBookingVariables>({
+      query: API.getBooking,
+      variables: {
+        ferryBookingDraftId: draftId,
+      },
+      context: {
+        headers: {
+          Authorization: token,
+        },
+      },
+    });
+  }
+
+  updateBookingPriceInfo(
+    draftId: number,
+    token: string,
+    priceInfo: BookingPriceInfo
+  ) {
+    return this.gqlClient.mutate<
+      UpdateBookingPriceInfoResponse,
+      UpdateBookingPriceInfoVariables
+    >({
+      mutation: API.updatePriceInfo,
+      variables: {
+        input: {
+          id: draftId,
+          patch: {
+            priceInfo,
+          },
+        },
+      },
+      context: {
+        headers: {
+          Authorization: token,
+        },
+      },
+    });
   }
 
   updatePaymentInfo(

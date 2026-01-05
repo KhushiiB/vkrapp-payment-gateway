@@ -41,15 +41,29 @@ export class PaymentService {
          */
         let updatedPrice: BookingPriceInfo = {
           ...booking.data.ferryBookingDraft.priceInfo,
-          SailingFare:
-            result.data.verifyScheduleBooking.calculatedPrices.sailingPrice?.toFixed(
+        };
+        if (result.data.verifyScheduleBooking.calculatedPrices.sailingPrice) {
+          updatedPrice.SailingFare =
+            result.data.verifyScheduleBooking.calculatedPrices.sailingPrice.toFixed(
               2
-            ),
-          TotalPrice:
+            );
+        }
+        if (result.data.verifyScheduleBooking.calculatedPrices.totalPrice) {
+          updatedPrice.TotalPrice =
             result.data.verifyScheduleBooking.calculatedPrices.totalPrice?.toFixed(
               2
-            ),
-        };
+            );
+        }
+        if (result.data.verifyScheduleBooking.calculatedPrices.vat) {
+          updatedPrice.VatCharge =
+            result.data.verifyScheduleBooking.calculatedPrices.vat.toFixed(2);
+        }
+        if (result.data.verifyScheduleBooking.calculatedPrices.serviceCharge) {
+          updatedPrice.ServiceCharge =
+            result.data.verifyScheduleBooking.calculatedPrices.serviceCharge.toFixed(
+              2
+            );
+        }
         /**
          * Update the price info of the booking
          */

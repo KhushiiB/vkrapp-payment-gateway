@@ -7,6 +7,8 @@ export type VerifyBookingResponse = {
     calculatedPrices: {
       sailingPrice: number;
       totalPrice: number;
+      vat: number;
+      serviceCharge: number;
     };
   };
 };

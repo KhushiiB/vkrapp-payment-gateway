@@ -45,6 +45,7 @@ export type UpdateBookingPriceInfoResponse = {
   updateFerryBookingDraft: {
     ferryBookingDraft: {
       id: number;
+      priceInfo: BookingPriceInfo;
     };
   };
 };

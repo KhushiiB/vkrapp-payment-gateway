@@ -29,12 +29,17 @@ export class PaymentService {
      * Verify the booking
      */
     let result = await this.graphQLClient.verifyBooking(draftId, token);
-
+    let priceInfo: BookingPriceInfo | null = null;
     if (!result.data?.verifyScheduleBooking.success) {
       try {
+        /**
+         * Get booking details to get other price info.
+         */
         const booking = await this.graphQLClient.getBooking(draftId, token);
-
-        let priceInfo: BookingPriceInfo = {
+        /**
+         * Update price from verifybooking response. price info from booking is required. else, it overrides the json. data being lost
+         */
+        let updatedPrice: BookingPriceInfo = {
           ...booking.data.ferryBookingDraft.priceInfo,
           SailingFare:
             result.data.verifyScheduleBooking.calculatedPrices.sailingPrice?.toFixed(
@@ -45,14 +50,25 @@ export class PaymentService {
               2
             ),
         };
+        /**
+         * Update the price info of the booking
+         */
         const updateResult = await this.graphQLClient.updateBookingPriceInfo(
           draftId,
           token,
-          priceInfo
+          updatedPrice
         );
+
+        priceInfo =
+          updateResult?.data?.updateFerryBookingDraft?.ferryBookingDraft
+            ?.priceInfo || null;
+
+        /**
+         * Verify one more time for confirmation
+         */
         result = await this.graphQLClient.verifyBooking(draftId, token);
         if (!result.data?.verifyScheduleBooking.success) {
-          throw(new Error())
+          throw new Error();
         }
       } catch (e) {
         return {
@@ -103,6 +119,7 @@ export class PaymentService {
       statusCode: 201,
       status: true,
       bookingInfo,
+      priceInfo,
       session_id: stripeIntent.id,
       client_secret: stripeIntent.client_secret,
       stripe_status: stripeIntent.status,

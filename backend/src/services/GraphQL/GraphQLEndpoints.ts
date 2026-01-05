@@ -24,6 +24,7 @@ const API = {
       updateFerryBookingDraft(input: $input) {
         ferryBookingDraft {
           id
+          priceInfo
         }
       }
     }
